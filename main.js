@@ -16,13 +16,19 @@ app.get("/proxy", async (req, res) => {
 
   console.log("Piping request to", server);
 
-  const { data } = await axios.get(server, {
+  const response = await axios.get(server, {
     responseType: "stream",
     params: req.query,
     headers: req.headers,
+    validateStatus: () => true,
+    maxRedirects: 0,
   });
 
-  data.pipe(res);
+  for (let header in response.headers) {
+    res.setHeader(header, response.headers[header]);
+  }
+
+  response.data.pipe(res);
 });
 
 app.listen(PORT, () => {
